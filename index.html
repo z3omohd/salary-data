@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wasan Financial Suite</title>
+    <title>Wasan Financial Suite - المنظومة المالية الخاصّة</title>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -11,9 +11,9 @@
             --card-bg: #ffffff;
             --text-main: #1e293b;
             --border-color: #e2e8f0;
-            --primary-blue: #3b82f6;
-            --primary-red: #ef4444;
-            --primary-green: #22c55e;
+            --primary-blue: #2563eb;
+            --primary-red: #dc2626;
+            --primary-green: #16a34a;
         }
 
         * {
@@ -26,14 +26,16 @@
         body {
             background-color: var(--bg-color);
             color: var(--text-main);
-            padding: 30px;
+            padding: 20px;
             display: flex;
             justify-content: center;
+            align-items: center;
+            min-height: 100vh;
         }
 
         .container {
             width: 100%;
-            max-width: 1000px;
+            max-width: 1050px;
             background: var(--card-bg);
             padding: 25px;
             border-radius: 12px;
@@ -41,22 +43,44 @@
             border: 1px solid var(--border-color);
         }
 
-        /* أدوات التحكم بالإضافة والتوجيه */
-        .controls-bar {
+        /* شاشة تسجيل الدخول */
+        .auth-card {
+            max-width: 400px;
+            margin: 20px auto;
+            text-align: center;
+        }
+
+        .auth-card h2 {
+            margin-bottom: 20px;
+            color: #0f172a;
+            font-size: 1.4rem;
+        }
+
+        .auth-card input {
+            margin-bottom: 12px;
+        }
+
+        /* شريط معلومات الحساب */
+        .user-bar {
             display: flex;
             justify-content: space-between;
             align-items: center;
             background-color: #f1f5f9;
             padding: 12px 18px;
             border-radius: 8px;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             border: 1px solid var(--border-color);
         }
 
-        .controls-group {
+        .controls-bar {
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            gap: 10px;
+            background-color: #ffffff;
+            padding: 12px 18px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border-color);
         }
 
         .btn {
@@ -69,26 +93,28 @@
             transition: all 0.2s ease;
         }
 
-        .btn-blue {
-            background-color: var(--primary-blue);
-            color: white;
+        .btn-blue { background-color: var(--primary-blue); color: white; }
+        .btn-red { background-color: var(--primary-red); color: white; }
+        .btn-dark { background-color: #334155; color: white; }
+        .btn-del {
+            background-color: #fee2e2;
+            color: #991b1b;
+            padding: 4px 8px;
+            font-size: 0.75rem;
+            border-radius: 4px;
+            border: 1px solid #fca5a5;
+            cursor: pointer;
         }
+        .btn-del:hover { background-color: #fca5a5; }
 
-        .btn-red {
-            background-color: var(--primary-red);
-            color: white;
-        }
+        .btn:hover { opacity: 0.9; }
 
-        .btn:hover {
-            opacity: 0.9;
-        }
-
-        select {
-            padding: 7px 10px;
+        input, select {
+            width: 100%;
+            padding: 9px 12px;
             border: 1px solid var(--border-color);
             border-radius: 6px;
-            background: white;
-            font-size: 0.88rem;
+            font-size: 0.9rem;
         }
 
         .grid-tables {
@@ -99,14 +125,8 @@
         }
 
         @media (max-width: 768px) {
-            .grid-tables {
-                grid-template-columns: 1fr;
-            }
-            .controls-bar {
-                flex-direction: column;
-                gap: 12px;
-                align-items: stretch;
-            }
+            .grid-tables { grid-template-columns: 1fr; }
+            .controls-bar, .user-bar { flex-direction: column; gap: 12px; }
         }
 
         .table-wrapper {
@@ -123,51 +143,17 @@
         }
 
         th, td {
-            padding: 12px 15px;
+            padding: 10px 12px;
             border-bottom: 1px solid var(--border-color);
         }
 
-        th {
-            color: white;
-            font-weight: 600;
-        }
+        th { color: white; font-weight: 600; }
+        .liabilities-table th { background-color: var(--primary-red); }
+        .assets-table th { background-color: var(--primary-blue); }
 
-        .liabilities-table th {
-            background-color: var(--primary-red);
-        }
-
-        .assets-table th {
-            background-color: var(--primary-blue);
-        }
-
-        .total-row td {
-            font-weight: bold;
-            background-color: #f1f5f9;
-        }
-
-        .assets-total td {
-            background-color: #dcfce7;
-            color: #166534;
-        }
-
-        .liabilities-total td {
-            background-color: #fee2e2;
-            color: #991b1b;
-        }
-
-        input {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            font-family: 'Tajawal', sans-serif;
-            font-size: 0.95rem;
-        }
-
-        input:focus {
-            outline: none;
-            border-color: var(--primary-blue);
-        }
+        .total-row td { font-weight: bold; background-color: #f8fafc; }
+        .assets-total td { background-color: #dcfce7; color: #166534; }
+        .liabilities-total td { background-color: #fee2e2; color: #991b1b; }
 
         .net-worth-box {
             background: #ffffff;
@@ -181,72 +167,87 @@
             font-weight: bold;
         }
 
-        .net-value {
-            color: #166534;
-        }
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <!-- شريط الصلاحيات والتحكم بموقع الإضافة -->
-        <div class="controls-bar">
-            <div class="controls-group">
-                <label for="insertPosition" style="font-weight: 500; font-size: 0.9rem;">موقع إضافة الصفوف الجديد:</label>
-                <select id="insertPosition">
-                    <option value="bottom">أسفل الجدول (في النهاية)</option>
-                    <option value="top">أعلى الجدول (في البداية)</option>
-                </select>
+        <!-- شاشة الدخول والتسجيل الرسمية -->
+        <div id="authSection" class="auth-card">
+            <h2>تسجيل الدخول للمحفظة المالية</h2>
+            <input type="email" id="emailInput" placeholder="البريد الإلكتروني">
+            <input type="password" id="passwordInput" placeholder="كلمة المرور">
+            <div style="display: flex; gap: 10px; margin-top: 10px;">
+                <button class="btn btn-blue" id="loginBtn" style="flex:1;">تسجيل الدخول</button>
+                <button class="btn btn-dark" id="signUpBtn" style="flex:1;">إنشاء حساب جديد</button>
             </div>
-            <div class="controls-group">
-                <button class="btn btn-red" id="addLiabilityBtn">+ إضافة التزام/فاتورة</button>
-                <button class="btn btn-blue" id="addAssetBtn">+ إضافة أصل/إيراد</button>
-            </div>
+            <p id="authError" style="color: var(--primary-red); margin-top: 15px; font-size: 0.85rem;"></p>
         </div>
 
-        <div class="grid-tables">
-            <!-- جدول الالتزامات والفواتير -->
-            <div class="table-wrapper">
-                <table class="liabilities-table">
-                    <thead>
-                        <tr>
-                            <th>المبلغ (ر.س)</th>
-                            <th>الالتزامات</th>
-                        </tr>
-                    </thead>
-                    <tbody id="liabilitiesBody">
-                        <!-- يُعبأ تلقائياً -->
-                    </tbody>
-                </table>
+        <!-- التطبيق الرئيسي المتكامل -->
+        <div id="appSection" class="hidden">
+            <div class="user-bar">
+                <div style="font-size: 0.95rem;">المستخدم الحالي: <strong id="userEmailLabel"></strong></div>
+                <button class="btn btn-dark" id="logoutBtn">تسجيل الخروج</button>
             </div>
 
-            <!-- جدول الأصول والواردات -->
-            <div class="table-wrapper">
-                <table class="assets-table">
-                    <thead>
-                        <tr>
-                            <th>المبلغ (ر.س)</th>
-                            <th>البند</th>
-                        </tr>
-                    </thead>
-                    <tbody id="assetsBody">
-                        <!-- يُعبأ تلقائياً -->
-                    </tbody>
-                </table>
+            <div class="controls-bar">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <label for="insertPosition" style="font-size: 0.9rem;">موقع إضافة الصفوف:</label>
+                    <select id="insertPosition" style="width: auto;">
+                        <option value="bottom">أسفل الجدول</option>
+                        <option value="top">أعلى الجدول</option>
+                    </select>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn btn-red" id="addLiabilityBtn">+ إضافة التزام/فاتورة</button>
+                    <button class="btn btn-blue" id="addAssetBtn">+ إضافة أصل/إيراد</button>
+                </div>
             </div>
-        </div>
 
-        <!-- صندوق الصافي المتبقي -->
-        <div class="net-worth-box">
-            <span class="net-value" id="netTotal">0.00 ر.س</span>
-            <span style="font-size: 0.95rem; color: #64748b;">الصافي المتبقي (مجموع الأصول - مجموع الالتزامات)</span>
+            <div class="grid-tables">
+                <!-- جدول الالتزامات -->
+                <div class="table-wrapper">
+                    <table class="liabilities-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 30px;"></th>
+                                <th style="width: 120px;">المبلغ (ر.س)</th>
+                                <th>الالتزامات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="liabilitiesBody"></tbody>
+                    </table>
+                </div>
+
+                <!-- جدول الأصول -->
+                <div class="table-wrapper">
+                    <table class="assets-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 30px;"></th>
+                                <th style="width: 120px;">المبلغ (ر.س)</th>
+                                <th>البند</th>
+                            </tr>
+                        </thead>
+                        <tbody id="assetsBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="net-worth-box">
+                <span class="net-value" id="netTotal" style="color:#166534;">0.00 ر.س</span>
+                <span style="font-size: 0.95rem; color: #64748b;">الصافي المتبقي (الأصول - الالتزامات)</span>
+            </div>
         </div>
     </div>
 
-    <!-- ربط مكتبات Firebase عبر CDN وتضمين كود التشغيل -->
+    <!-- ربط مكتبات Firebase عبر CDN -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, getDocs, setDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDi9gUklNkyIyPo2NBHBPMcX1a2moRmpqc",
@@ -259,112 +260,128 @@
         };
 
         const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
         const db = getFirestore(app);
 
-        let initialData = {
-            liabilities: [
-                { name: "القرض الشخصي", amount: 3215.06 },
-                { name: "القرض العقاري", amount: 400 },
-                { name: "القرض stc", amount: 415 },
-                { name: "فاتورة zain", amount: 286.35 },
-                { name: "فاتورة stc", amount: 287.5 },
-                { name: "مصروف", amount: 5000 }
-            ],
-            assets: [
-                { name: "حساب الوكالة", amount: 50000 },
-                { name: "بايننس", amount: 17300 },
-                { name: "الراتب", amount: 5500 },
-                { name: "المكافأة", amount: 5000 }
-            ]
-        };
+        let currentUser = null;
+        // بيانات مصفرة تماماً للبدء برسمية واستقلالية
+        let userData = { liabilities: [], assets: [] };
 
-        async function loadData() {
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUser = user;
+                document.getElementById('userEmailLabel').innerText = user.email;
+                document.getElementById('authSection').classList.add('hidden');
+                document.getElementById('appSection').classList.remove('hidden');
+                await loadUserData();
+            } else {
+                currentUser = null;
+                document.getElementById('authSection').classList.remove('hidden');
+                document.getElementById('appSection').classList.add('hidden');
+            }
+        });
+
+        document.getElementById('loginBtn').addEventListener('click', async () => {
+            const email = document.getElementById('emailInput').value;
+            const password = document.getElementById('passwordInput').value;
             try {
-                const querySnapshot = await getDocs(collection(db, "financialData"));
-                if (!querySnapshot.empty) {
-                    querySnapshot.forEach((docSnap) => {
-                        if (docSnap.id === "mainData") {
-                            initialData = docSnap.data();
-                        }
-                    });
-                }
-            } catch (e) {
-                console.log("استخدام البيانات المحلية حالياً", e);
+                await signInWithEmailAndPassword(auth, email, password);
+                document.getElementById('authError').innerText = '';
+            } catch (err) {
+                document.getElementById('authError').innerText = 'خطأ في بيانات الدخول، تأكد من البريد وكلمة المرور.';
+            }
+        });
+
+        document.getElementById('signUpBtn').addEventListener('click', async () => {
+            const email = document.getElementById('emailInput').value;
+            const password = document.getElementById('passwordInput').value;
+            try {
+                await createUserWithEmailAndPassword(auth, email, password);
+                document.getElementById('authError').innerText = '';
+            } catch (err) {
+                document.getElementById('authError').innerText = 'كلمة المرور يجب ألا تقل عن 6 خانات.';
+            }
+        });
+
+        document.getElementById('logoutBtn').addEventListener('click', () => signOut(auth));
+
+        async function loadUserData() {
+            if (!currentUser) return;
+            const docRef = doc(db, "usersFinancialData", currentUser.uid);
+            const docSnap = await getDoc(docRef);
+
+            if (docSnap.exists()) {
+                userData = docSnap.data();
+            } else {
+                userData = { liabilities: [], assets: [] };
+                await saveData();
             }
             renderTables();
         }
 
         async function saveData() {
-            try {
-                await setDoc(doc(db, "financialData", "mainData"), initialData);
-            } catch (e) {
-                console.error("خطأ في الحفظ السحابي: ", e);
-            }
+            if (!currentUser) return;
+            await setDoc(doc(db, "usersFinancialData", currentUser.uid), userData);
         }
 
         function renderTables() {
             const liabilitiesBody = document.getElementById('liabilitiesBody');
             const assetsBody = document.getElementById('assetsBody');
-
             liabilitiesBody.innerHTML = '';
             assetsBody.innerHTML = '';
 
             let totalLiabilities = 0;
             let totalAssets = 0;
 
-            // تعبئة الالتزامات
-            initialData.liabilities.forEach((item, index) => {
-                totalLiabilities += Number(item.amount) || 0;
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td><input type="number" value="${item.amount}" data-type="liability" data-index="${index}"></td>
-                    <td><input type="text" value="${item.name}" data-type="liability-name" data-index="${index}"></td>
-                `;
-                liabilitiesBody.appendChild(tr);
-            });
+            // عرض الالتزامات
+            if (userData.liabilities.length === 0) {
+                liabilitiesBody.innerHTML = `<tr><td colspan="3" style="text-align:center; color:#94a3b8; padding:15px;">لا توجد التزامات مسجلة</td></tr>`;
+            } else {
+                userData.liabilities.forEach((item, index) => {
+                    totalLiabilities += Number(item.amount) || 0;
+                    liabilitiesBody.innerHTML += `
+                        <tr>
+                            <td><button class="btn-del" onclick="deleteRow('liability', ${index})">✕</button></td>
+                            <td><input type="number" value="${item.amount}" data-type="liability" data-index="${index}"></td>
+                            <td><input type="text" value="${item.name}" data-type="liability-name" data-index="${index}"></td>
+                        </tr>`;
+                });
+            }
 
-            liabilitiesBody.innerHTML += `
-                <tr class="total-row liabilities-total"><td colspan="2">مجموع الالتزامات: ${totalLiabilities.toFixed(2)} ر.س</td></tr>
-            `;
+            liabilitiesBody.innerHTML += `<tr class="total-row liabilities-total"><td colspan="3">مجموع الالتزامات: ${totalLiabilities.toFixed(2)} ر.س</td></tr>`;
 
-            // تعبئة الأصول
-            initialData.assets.forEach((item, index) => {
-                totalAssets += Number(item.amount) || 0;
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td><input type="number" value="${item.amount}" data-type="asset" data-index="${index}"></td>
-                    <td><input type="text" value="${item.name}" data-type="asset-name" data-index="${index}"></td>
-                `;
-                assetsBody.appendChild(tr);
-            });
+            // عرض الأصول
+            if (userData.assets.length === 0) {
+                assetsBody.innerHTML = `<tr><td colspan="3" style="text-align:center; color:#94a3b8; padding:15px;">لا توجد أصول مسجلة</td></tr>`;
+            } else {
+                userData.assets.forEach((item, index) => {
+                    totalAssets += Number(item.amount) || 0;
+                    assetsBody.innerHTML += `
+                        <tr>
+                            <td><button class="btn-del" onclick="deleteRow('asset', ${index})">✕</button></td>
+                            <td><input type="number" value="${item.amount}" data-type="asset" data-index="${index}"></td>
+                            <td><input type="text" value="${item.name}" data-type="asset-name" data-index="${index}"></td>
+                        </tr>`;
+                });
+            }
 
-            assetsBody.innerHTML += `
-                <tr class="total-row assets-total"><td colspan="2">مجموع الأصول: ${totalAssets.toFixed(2)} ر.س</td></tr>
-            `;
+            assetsBody.innerHTML += `<tr class="total-row assets-total"><td colspan="3">مجموع الأصول: ${totalAssets.toFixed(2)} ر.س</td></tr>`;
 
-            // حساب الصافي
-            const netTotal = totalAssets - totalLiabilities;
-            document.getElementById('netTotal').innerText = `${netTotal.toFixed(2)} ر.س`;
-
+            document.getElementById('netTotal').innerText = `${(totalAssets - totalLiabilities).toFixed(2)} ر.س`;
             attachEvents();
         }
 
         function attachEvents() {
-            document.querySelectorAll('input').forEach(input => {
+            document.querySelectorAll('input[data-type]').forEach(input => {
                 input.addEventListener('change', (e) => {
                     const type = e.target.getAttribute('data-type');
                     const index = e.target.getAttribute('data-index');
-                    const value = e.target.value;
+                    const val = e.target.value;
 
-                    if (type === 'liability') {
-                        initialData.liabilities[index].amount = parseFloat(value) || 0;
-                    } else if (type === 'liability-name') {
-                        initialData.liabilities[index].name = value;
-                    } else if (type === 'asset') {
-                        initialData.assets[index].amount = parseFloat(value) || 0;
-                    } else if (type === 'asset-name') {
-                        initialData.assets[index].name = value;
-                    }
+                    if (type === 'liability') userData.liabilities[index].amount = parseFloat(val) || 0;
+                    if (type === 'liability-name') userData.liabilities[index].name = val;
+                    if (type === 'asset') userData.assets[index].amount = parseFloat(val) || 0;
+                    if (type === 'asset-name') userData.assets[index].name = val;
 
                     saveData();
                     renderTables();
@@ -372,34 +389,34 @@
             });
         }
 
-        // إتاحة إضافة الصفوف إما بالأعلى أو الأسفل حسب اختيار المستخدم
+        // دالة حذف الصف
+        window.deleteRow = function(type, index) {
+            if (type === 'asset') {
+                userData.assets.splice(index, 1);
+            } else if (type === 'liability') {
+                userData.liabilities.splice(index, 1);
+            }
+            saveData();
+            renderTables();
+        };
+
+        // إضافة أصل جديد
         document.getElementById('addAssetBtn').addEventListener('click', () => {
-            const position = document.getElementById('insertPosition').value;
-            const newItem = { name: "بند جديد", amount: 0 };
-
-            if (position === 'top') {
-                initialData.assets.unshift(newItem); // إضافة في البداية (الأعلى)
-            } else {
-                initialData.assets.push(newItem);    // إضافة في النهاية (الأسفل)
-            }
+            const pos = document.getElementById('insertPosition').value;
+            const item = { name: "", amount: 0 };
+            pos === 'top' ? userData.assets.unshift(item) : userData.assets.push(item);
             saveData();
             renderTables();
         });
 
+        // إضافة التزام جديد
         document.getElementById('addLiabilityBtn').addEventListener('click', () => {
-            const position = document.getElementById('insertPosition').value;
-            const newItem = { name: "التزام جديد", amount: 0 };
-
-            if (position === 'top') {
-                initialData.liabilities.unshift(newItem); // إضافة في البداية (الأعلى)
-            } else {
-                initialData.liabilities.push(newItem);    // إضافة في النهاية (الأسفل)
-            }
+            const pos = document.getElementById('insertPosition').value;
+            const item = { name: "", amount: 0 };
+            pos === 'top' ? userData.liabilities.unshift(item) : userData.liabilities.push(item);
             saveData();
             renderTables();
         });
-
-        loadData();
     </script>
 </body>
 </html>
