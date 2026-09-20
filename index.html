@@ -41,6 +41,56 @@
             border: 1px solid var(--border-color);
         }
 
+        /* أدوات التحكم بالإضافة والتوجيه */
+        .controls-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #f1f5f9;
+            padding: 12px 18px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border-color);
+        }
+
+        .controls-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 8px 14px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.88rem;
+            transition: all 0.2s ease;
+        }
+
+        .btn-blue {
+            background-color: var(--primary-blue);
+            color: white;
+        }
+
+        .btn-red {
+            background-color: var(--primary-red);
+            color: white;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+        }
+
+        select {
+            padding: 7px 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background: white;
+            font-size: 0.88rem;
+        }
+
         .grid-tables {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -51,6 +101,11 @@
         @media (max-width: 768px) {
             .grid-tables {
                 grid-template-columns: 1fr;
+            }
+            .controls-bar {
+                flex-direction: column;
+                gap: 12px;
+                align-items: stretch;
             }
         }
 
@@ -134,6 +189,21 @@
 <body>
 
     <div class="container">
+        <!-- شريط الصلاحيات والتحكم بموقع الإضافة -->
+        <div class="controls-bar">
+            <div class="controls-group">
+                <label for="insertPosition" style="font-weight: 500; font-size: 0.9rem;">موقع إضافة الصفوف الجديد:</label>
+                <select id="insertPosition">
+                    <option value="bottom">أسفل الجدول (في النهاية)</option>
+                    <option value="top">أعلى الجدول (في البداية)</option>
+                </select>
+            </div>
+            <div class="controls-group">
+                <button class="btn btn-red" id="addLiabilityBtn">+ إضافة التزام/فاتورة</button>
+                <button class="btn btn-blue" id="addAssetBtn">+ إضافة أصل/إيراد</button>
+            </div>
+        </div>
+
         <div class="grid-tables">
             <!-- جدول الالتزامات والفواتير -->
             <div class="table-wrapper">
@@ -145,7 +215,7 @@
                         </tr>
                     </thead>
                     <tbody id="liabilitiesBody">
-                        <!-- يُعبأ تلقائياً عبر الكود -->
+                        <!-- يُعبأ تلقائياً -->
                     </tbody>
                 </table>
             </div>
@@ -160,7 +230,7 @@
                         </tr>
                     </thead>
                     <tbody id="assetsBody">
-                        <!-- يُعبأ تلقائياً عبر الكود -->
+                        <!-- يُعبأ تلقائياً -->
                     </tbody>
                 </table>
             </div>
@@ -178,7 +248,6 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, getDocs, setDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // إعدادات فايربيس الخاصة بك
         const firebaseConfig = {
             apiKey: "AIzaSyDi9gUklNkyIyPo2NBHBPMcX1a2moRmpqc",
             authDomain: "financial-60e4a.firebaseapp.com",
@@ -192,7 +261,6 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // البيانات الافتتاحية للمشروع
         let initialData = {
             liabilities: [
                 { name: "القرض الشخصي", amount: 3215.06 },
@@ -221,7 +289,7 @@
                     });
                 }
             } catch (e) {
-                console.log("الاعتماد على البيانات المحلية لعدم الاتصال السحابي المباشر حالياً", e);
+                console.log("استخدام البيانات المحلية حالياً", e);
             }
             renderTables();
         }
@@ -255,9 +323,8 @@
                 liabilitiesBody.appendChild(tr);
             });
 
-            // صفوف المجاميع الفرعية للالتزامات
             liabilitiesBody.innerHTML += `
-                <tr class="total-row"><td colspan="2" style="color:var(--primary-red)">مجموع الالتزامات: ${totalLiabilities.toFixed(2)} ر.س</td></tr>
+                <tr class="total-row liabilities-total"><td colspan="2">مجموع الالتزامات: ${totalLiabilities.toFixed(2)} ر.س</td></tr>
             `;
 
             // تعبئة الأصول
@@ -271,23 +338,14 @@
                 assetsBody.appendChild(tr);
             });
 
-            // إضافة صف بند جديد فارغ للأصول للإضافة السريعة
-            assetsBody.innerHTML += `
-                <tr>
-                    <td><input type="number" id="newAssetAmount" placeholder="0.00"></td>
-                    <td><input type="text" id="newAssetName" placeholder="أضف بند..."></td>
-                </tr>
-            `;
-
             assetsBody.innerHTML += `
                 <tr class="total-row assets-total"><td colspan="2">مجموع الأصول: ${totalAssets.toFixed(2)} ر.س</td></tr>
             `;
 
-            // حساب الصافي المتبقي
+            // حساب الصافي
             const netTotal = totalAssets - totalLiabilities;
             document.getElementById('netTotal').innerText = `${netTotal.toFixed(2)} ر.س`;
 
-            // تفعيل الأحداث للتعديل المباشر والحفظ السحابي
             attachEvents();
         }
 
@@ -312,28 +370,35 @@
                     renderTables();
                 });
             });
-
-            // إضافة بند جديد عند ملء خانة الإضافة
-            const newNameInput = document.getElementById('newAssetName');
-            const newAmountInput = document.getElementById('newAssetAmount');
-
-            if (newNameInput && newAmountInput) {
-                const addNew = () => {
-                    if (newNameInput.value.trim() !== '') {
-                        initialData.assets.push({
-                            name: newNameInput.value,
-                            amount: parseFloat(newAmountInput.value) || 0
-                        });
-                        saveData();
-                        renderTables();
-                    }
-                };
-                newNameInput.addEventListener('change', addNew);
-                newAmountInput.addEventListener('change', addNew);
-            }
         }
 
-        // تشغيل التحميل عند فتح الصفحة
+        // إتاحة إضافة الصفوف إما بالأعلى أو الأسفل حسب اختيار المستخدم
+        document.getElementById('addAssetBtn').addEventListener('click', () => {
+            const position = document.getElementById('insertPosition').value;
+            const newItem = { name: "بند جديد", amount: 0 };
+
+            if (position === 'top') {
+                initialData.assets.unshift(newItem); // إضافة في البداية (الأعلى)
+            } else {
+                initialData.assets.push(newItem);    // إضافة في النهاية (الأسفل)
+            }
+            saveData();
+            renderTables();
+        });
+
+        document.getElementById('addLiabilityBtn').addEventListener('click', () => {
+            const position = document.getElementById('insertPosition').value;
+            const newItem = { name: "التزام جديد", amount: 0 };
+
+            if (position === 'top') {
+                initialData.liabilities.unshift(newItem); // إضافة في البداية (الأعلى)
+            } else {
+                initialData.liabilities.push(newItem);    // إضافة في النهاية (الأسفل)
+            }
+            saveData();
+            renderTables();
+        });
+
         loadData();
     </script>
 </body>
