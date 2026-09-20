@@ -43,9 +43,9 @@
             border: 1px solid var(--border-color);
         }
 
-        /* شاشة تسجيل الدخول */
+        /* شاشة تسجيل الدخول والتوثيق */
         .auth-card {
-            max-width: 400px;
+            max-width: 420px;
             margin: 20px auto;
             text-align: center;
         }
@@ -184,13 +184,23 @@
             font-weight: bold;
         }
 
+        .verify-box {
+            background-color: #fef3c7;
+            border: 1px solid #f59e0b;
+            color: #92400e;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-size: 0.9rem;
+        }
+
         .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <!-- شاشة الدخول والتسجيل -->
+        <!-- شاشة تسجيل الدخول -->
         <div id="authSection" class="auth-card">
             <h2>تسجيل الدخول للمحفظة المالية</h2>
             
@@ -207,7 +217,16 @@
                 <button class="btn btn-blue" id="loginBtn" style="flex:1;">تسجيل الدخول</button>
                 <button class="btn btn-dark" id="signUpBtn" style="flex:1;">إنشاء حساب</button>
             </div>
+            
             <p id="authError" style="color: var(--primary-red); margin-top: 15px; font-size: 0.85rem;"></p>
+
+            <!-- صندوق التنبيه في حال عدم توثيق البريد -->
+            <div id="verifyBox" class="verify-box hidden">
+                تم إرسال رابط التفعيل إلى إيميلك. يرجى تأكيد البريد الإلكتروني للوصول لبياناتك.
+                <br><br>
+                <button class="btn btn-dark" id="resendVerifyBtn" style="font-size: 0.8rem; padding: 5px 10px;">إعادة إرسال رابط التفعيل</button>
+                <button class="btn btn-blue" id="checkVerifiedBtn" style="font-size: 0.8rem; padding: 5px 10px; margin-right: 5px;">تم التفعيل، ادخل الآن</button>
+            </div>
         </div>
 
         <!-- التطبيق الرئيسي المتكامل -->
@@ -271,7 +290,7 @@
     <!-- ربط مكتبات Firebase عبر CDN -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, signInWithRedirect, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendEmailVerification, GoogleAuthProvider, signInWithPopup, signInWithRedirect, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -292,54 +311,94 @@
         let currentUser = null;
         let userData = { liabilities: [], assets: [] };
 
+        // التحقق من حالة المستخدم وتأكيد البريد
         onAuthStateChanged(auth, async (user) => {
             if (user) {
-                currentUser = user;
-                document.getElementById('userEmailLabel').innerText = user.email || user.displayName;
-                document.getElementById('authSection').classList.add('hidden');
-                document.getElementById('appSection').classList.remove('hidden');
-                await loadUserData();
+                // إذا دخل بواسطة Google أو كان إيميله موثقاً
+                if (user.emailVerified || user.providerData[0].providerId === 'google.com') {
+                    currentUser = user;
+                    document.getElementById('userEmailLabel').innerText = user.email || user.displayName;
+                    document.getElementById('authSection').classList.add('hidden');
+                    document.getElementById('verifyBox').classList.add('hidden');
+                    document.getElementById('appSection').classList.remove('hidden');
+                    await loadUserData();
+                } else {
+                    // المستخدم سجل بالإيميل ولم يفعل الرابط بعد
+                    currentUser = user;
+                    document.getElementById('authSection').classList.remove('hidden');
+                    document.getElementById('verifyBox').classList.remove('hidden');
+                    document.getElementById('appSection').classList.add('hidden');
+                    document.getElementById('authError').innerText = '';
+                }
             } else {
                 currentUser = null;
                 document.getElementById('authSection').classList.remove('hidden');
+                document.getElementById('verifyBox').classList.add('hidden');
                 document.getElementById('appSection').classList.add('hidden');
             }
         });
 
-        // دخول بواسطة Google مع معالجة حظر النوافذ المنبثقة تلقائياً
+        // تسجيل الدخول بـ Google (معتمد وموثق تلقائياً من Google)
         document.getElementById('googleLoginBtn').addEventListener('click', async () => {
             try {
                 await signInWithPopup(auth, googleProvider);
                 document.getElementById('authError').innerText = '';
             } catch (err) {
-                console.warn("Popup blocked or failed, trying redirect...", err);
                 try {
                     await signInWithRedirect(auth, googleProvider);
                 } catch (redErr) {
-                    document.getElementById('authError').innerText = 'حدث خطأ أثناء تسجيل الدخول بـ Google: ' + redErr.message;
+                    document.getElementById('authError').innerText = 'تعذر تسجيل الدخول بـ Google.';
                 }
             }
         });
 
+        // تسجيل الدخول بالبريد وكلمة المرور
         document.getElementById('loginBtn').addEventListener('click', async () => {
             const email = document.getElementById('emailInput').value;
             const password = document.getElementById('passwordInput').value;
             try {
-                await signInWithEmailAndPassword(auth, email, password);
-                document.getElementById('authError').innerText = '';
+                const userCred = await signInWithEmailAndPassword(auth, email, password);
+                if (!userCred.user.emailVerified) {
+                    document.getElementById('verifyBox').classList.remove('hidden');
+                } else {
+                    document.getElementById('authError').innerText = '';
+                }
             } catch (err) {
                 document.getElementById('authError').innerText = 'خطأ في البريد أو كلمة المرور.';
             }
         });
 
+        // إنشاء حساب جديد وإرسال رابط التفعيل
         document.getElementById('signUpBtn').addEventListener('click', async () => {
             const email = document.getElementById('emailInput').value;
             const password = document.getElementById('passwordInput').value;
             try {
-                await createUserWithEmailAndPassword(auth, email, password);
+                const userCred = await createUserWithEmailAndPassword(auth, email, password);
+                await sendEmailVerification(userCred.user);
+                document.getElementById('verifyBox').classList.remove('hidden');
                 document.getElementById('authError').innerText = '';
             } catch (err) {
-                document.getElementById('authError').innerText = 'كلمة المرور يجب ألا تقل عن 6 خانات.';
+                document.getElementById('authError').innerText = 'تعذر إنشاء الحساب، يرجى كتابة إيميل صحيح وكلمة مرور 6 خانات فأكثر.';
+            }
+        });
+
+        // إعادة إرسال رابط التفعيل
+        document.getElementById('resendVerifyBtn').addEventListener('click', async () => {
+            if (auth.currentUser) {
+                await sendEmailVerification(auth.currentUser);
+                alert('تم إرسال رابط التفعيل إلى بريدك الإلكتروني بنجاح!');
+            }
+        });
+
+        // التحقق بعد النقر على رابط التفعيل بالإيميل
+        document.getElementById('checkVerifiedBtn').addEventListener('click', async () => {
+            if (auth.currentUser) {
+                await auth.currentUser.reload();
+                if (auth.currentUser.emailVerified) {
+                    location.reload();
+                } else {
+                    alert('لم يتم تفعيل البريد بعد، يرجى فتح الإيميل والنقر على الرابط.');
+                }
             }
         });
 
