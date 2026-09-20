@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wasan Financial Suite</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --border-color: #e2e8f0;
+            --primary-blue: #3b82f6;
+            --primary-red: #ef4444;
+            --primary-green: #22c55e;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Tajawal', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            padding: 30px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1000px;
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border-color);
+        }
+
+        .grid-tables {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .grid-tables {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .table-wrapper {
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: right;
+            font-size: 0.95rem;
+        }
+
+        th, td {
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            color: white;
+            font-weight: 600;
+        }
+
+        .liabilities-table th {
+            background-color: var(--primary-red);
+        }
+
+        .assets-table th {
+            background-color: var(--primary-blue);
+        }
+
+        .total-row td {
+            font-weight: bold;
+            background-color: #f1f5f9;
+        }
+
+        .assets-total td {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+
+        .liabilities-total td {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+
+        input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-family: 'Tajawal', sans-serif;
+            font-size: 0.95rem;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+        }
+
+        .net-worth-box {
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .net-value {
+            color: #166534;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="grid-tables">
+            <!-- جدول الالتزامات والفواتير -->
+            <div class="table-wrapper">
+                <table class="liabilities-table">
+                    <thead>
+                        <tr>
+                            <th>المبلغ (ر.س)</th>
+                            <th>الالتزامات</th>
+                        </tr>
+                    </thead>
+                    <tbody id="liabilitiesBody">
+                        <!-- يُعبأ تلقائياً عبر الكود -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- جدول الأصول والواردات -->
+            <div class="table-wrapper">
+                <table class="assets-table">
+                    <thead>
+                        <tr>
+                            <th>المبلغ (ر.س)</th>
+                            <th>البند</th>
+                        </tr>
+                    </thead>
+                    <tbody id="assetsBody">
+                        <!-- يُعبأ تلقائياً عبر الكود -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- صندوق الصافي المتبقي -->
+        <div class="net-worth-box">
+            <span class="net-value" id="netTotal">0.00 ر.س</span>
+            <span style="font-size: 0.95rem; color: #64748b;">الصافي المتبقي (مجموع الأصول - مجموع الالتزامات)</span>
+        </div>
+    </div>
+
+    <!-- ربط مكتبات Firebase عبر CDN وتضمين كود التشغيل -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, setDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        // إعدادات فايربيس الخاصة بك
+        const firebaseConfig = {
+            apiKey: "AIzaSyDi9gUklNkyIyPo2NBHBPMcX1a2moRmpqc",
+            authDomain: "financial-60e4a.firebaseapp.com",
+            projectId: "financial-60e4a",
+            storageBucket: "financial-60e4a.firebasestorage.app",
+            messagingSenderId: "889252276037",
+            appId: "1:889252276037:web:81d337ae9471f2c215c02c",
+            measurementId: "G-2CL4NXC0Y4"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // البيانات الافتتاحية للمشروع
+        let initialData = {
+            liabilities: [
+                { name: "القرض الشخصي", amount: 3215.06 },
+                { name: "القرض العقاري", amount: 400 },
+                { name: "القرض stc", amount: 415 },
+                { name: "فاتورة zain", amount: 286.35 },
+                { name: "فاتورة stc", amount: 287.5 },
+                { name: "مصروف", amount: 5000 }
+            ],
+            assets: [
+                { name: "حساب الوكالة", amount: 50000 },
+                { name: "بايننس", amount: 17300 },
+                { name: "الراتب", amount: 5500 },
+                { name: "المكافأة", amount: 5000 }
+            ]
+        };
+
+        async function loadData() {
+            try {
+                const querySnapshot = await getDocs(collection(db, "financialData"));
+                if (!querySnapshot.empty) {
+                    querySnapshot.forEach((docSnap) => {
+                        if (docSnap.id === "mainData") {
+                            initialData = docSnap.data();
+                        }
+                    });
+                }
+            } catch (e) {
+                console.log("الاعتماد على البيانات المحلية لعدم الاتصال السحابي المباشر حالياً", e);
+            }
+            renderTables();
+        }
+
+        async function saveData() {
+            try {
+                await setDoc(doc(db, "financialData", "mainData"), initialData);
+            } catch (e) {
+                console.error("خطأ في الحفظ السحابي: ", e);
+            }
+        }
+
+        function renderTables() {
+            const liabilitiesBody = document.getElementById('liabilitiesBody');
+            const assetsBody = document.getElementById('assetsBody');
+
+            liabilitiesBody.innerHTML = '';
+            assetsBody.innerHTML = '';
+
+            let totalLiabilities = 0;
+            let totalAssets = 0;
+
+            // تعبئة الالتزامات
+            initialData.liabilities.forEach((item, index) => {
+                totalLiabilities += Number(item.amount) || 0;
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><input type="number" value="${item.amount}" data-type="liability" data-index="${index}"></td>
+                    <td><input type="text" value="${item.name}" data-type="liability-name" data-index="${index}"></td>
+                `;
+                liabilitiesBody.appendChild(tr);
+            });
+
+            // صفوف المجاميع الفرعية للالتزامات
+            liabilitiesBody.innerHTML += `
+                <tr class="total-row"><td colspan="2" style="color:var(--primary-red)">مجموع الالتزامات: ${totalLiabilities.toFixed(2)} ر.س</td></tr>
+            `;
+
+            // تعبئة الأصول
+            initialData.assets.forEach((item, index) => {
+                totalAssets += Number(item.amount) || 0;
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><input type="number" value="${item.amount}" data-type="asset" data-index="${index}"></td>
+                    <td><input type="text" value="${item.name}" data-type="asset-name" data-index="${index}"></td>
+                `;
+                assetsBody.appendChild(tr);
+            });
+
+            // إضافة صف بند جديد فارغ للأصول للإضافة السريعة
+            assetsBody.innerHTML += `
+                <tr>
+                    <td><input type="number" id="newAssetAmount" placeholder="0.00"></td>
+                    <td><input type="text" id="newAssetName" placeholder="أضف بند..."></td>
+                </tr>
+            `;
+
+            assetsBody.innerHTML += `
+                <tr class="total-row assets-total"><td colspan="2">مجموع الأصول: ${totalAssets.toFixed(2)} ر.س</td></tr>
+            `;
+
+            // حساب الصافي المتبقي
+            const netTotal = totalAssets - totalLiabilities;
+            document.getElementById('netTotal').innerText = `${netTotal.toFixed(2)} ر.س`;
+
+            // تفعيل الأحداث للتعديل المباشر والحفظ السحابي
+            attachEvents();
+        }
+
+        function attachEvents() {
+            document.querySelectorAll('input').forEach(input => {
+                input.addEventListener('change', (e) => {
+                    const type = e.target.getAttribute('data-type');
+                    const index = e.target.getAttribute('data-index');
+                    const value = e.target.value;
+
+                    if (type === 'liability') {
+                        initialData.liabilities[index].amount = parseFloat(value) || 0;
+                    } else if (type === 'liability-name') {
+                        initialData.liabilities[index].name = value;
+                    } else if (type === 'asset') {
+                        initialData.assets[index].amount = parseFloat(value) || 0;
+                    } else if (type === 'asset-name') {
+                        initialData.assets[index].name = value;
+                    }
+
+                    saveData();
+                    renderTables();
+                });
+            });
+
+            // إضافة بند جديد عند ملء خانة الإضافة
+            const newNameInput = document.getElementById('newAssetName');
+            const newAmountInput = document.getElementById('newAssetAmount');
+
+            if (newNameInput && newAmountInput) {
+                const addNew = () => {
+                    if (newNameInput.value.trim() !== '') {
+                        initialData.assets.push({
+                            name: newNameInput.value,
+                            amount: parseFloat(newAmountInput.value) || 0
+                        });
+                        saveData();
+                        renderTables();
+                    }
+                };
+                newNameInput.addEventListener('change', addNew);
+                newAmountInput.addEventListener('change', addNew);
+            }
+        }
+
+        // تشغيل التحميل عند فتح الصفحة
+        loadData();
+    </script>
+</body>
+</html>
